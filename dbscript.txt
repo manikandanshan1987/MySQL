@@ -1,0 +1,22 @@
+
+use gold2;
+
+SET @payment_id = 39372;
+SET @paid_interest_amount = 217;
+SET @loan_id = 1060164;
+SET @paid_date = '2020-11-13 05:30:00';
+
+DELETE FROM payment_detail where id=@payment_id;
+
+UPDATE loan SET total_interest_amount_paid = (total_interest_amount_paid - @paid_interest_amount) WHERE id = @loan_id;
+
+UPDATE day_book_summary SET interest_amount = (interest_amount - (@paid_interest_amount*2)),
+	total_credit_amount = (total_credit_amount - (@paid_interest_amount*2)), 
+	balance_amount = (balance_amount - (@paid_interest_amount*2)) 
+WHERE 
+	date = DATE(@paid_date) AND branch_id IN (SELECT loan.branch_id FROM loan WHERE loan.id = @loan_id);
+
+CALL update_day_book_summary(DATE(@paid_date), (SELECT loan.branch_id FROM loan WHERE loan.id = @loan_id));
+
+
+
